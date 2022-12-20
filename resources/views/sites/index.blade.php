@@ -49,6 +49,9 @@
                         <hr>
                         <div class="text-center">
                             <a class="btn btn-primary" href="/sites/create">New site</a>
+                            <a class="btn btn-info"
+                               target="_blank"
+                               href="{{route('siteCsvExport')}}">Export CSV Data</a>
                         </div>
                 </div>
             </div>

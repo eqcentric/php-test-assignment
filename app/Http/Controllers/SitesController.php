@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SiteService\SiteServiceInterface;
 use App\Site;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class SitesController extends Controller
 {
+    protected SiteServiceInterface $siteService;
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(SiteServiceInterface $siteService)
     {
         $this->middleware('auth');
+        $this->siteService = $siteService;
     }
 
     /**
@@ -23,10 +27,8 @@ class SitesController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
-        $sites = $user->sites()->get();
         return view('sites.index', [
-            'sites' => $sites,
+            'sites' => $this->siteService->getLoggedInUserSites(),
         ]);
     }
 
@@ -50,14 +52,14 @@ class SitesController extends Controller
         ];
 
         return view('sites.create', [
-            'namePlaceholder' => '"'.$randomVesselNames[array_rand($randomVesselNames)].'"',
+            'namePlaceholder' => '"' . $randomVesselNames[array_rand($randomVesselNames)] . '"',
         ]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -70,5 +72,33 @@ class SitesController extends Controller
         $site->save();
 
         return redirect()->route('sites.index');
+    }
+
+    /**
+     * @param Request $request
+     * @return void
+     */
+    public function show(Request $request)
+    {
+        $site = $this->siteService->showUserSite($request->site);
+
+        return view('sites.show', [
+            'site' => $site,
+        ]);
+    }
+
+    /**
+     * @return void
+     */
+    public function export()
+    {
+        $filePath = $this->siteService->generateSiteCsvData();
+        $file = Storage::exists($filePath);
+
+        if (!$file) {
+            throw new \Exception('Error when export csv.');
+        }
+
+        return Storage::download($filePath);
     }
 }

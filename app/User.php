@@ -37,8 +37,18 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    protected $appends = ['is_admin'];
+
     public function sites()
     {
         return $this->hasMany(Site::class);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsAdminAttribute(): bool
+    {
+        return $this->attributes['role'] === 'admin';
     }
 }
