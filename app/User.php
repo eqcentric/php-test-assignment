@@ -16,7 +16,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'role',
     ];
 
     /**
@@ -40,5 +40,16 @@ class User extends Authenticatable
     public function sites()
     {
         return $this->hasMany(Site::class);
+    }
+    
+    /**
+     * Check if this user belongs to a role
+     *
+     * @param $role
+     * @return bool
+     */
+    public function hasRole($role): bool
+    {
+        return $this->role === $role;
     }
 }

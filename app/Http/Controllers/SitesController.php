@@ -2,12 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\SitesExport;
 use App\Site;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SitesController extends Controller
 {
+    /**
+     * @var Collection
+     */
+    private $sites;
+    /**
+     * @var Authenticatable|null
+     */
+    private $user;
+
     /**
      * Create a new controller instance.
      *
@@ -16,6 +32,15 @@ class SitesController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            $this->user = auth()->user();
+            if ($this->user->hasRole('admin')) {
+                $this->sites = Site::all();
+            } else {
+                $this->sites = $this->user->sites()->get();
+            }
+            return $next($request);
+        });
     }
 
     /**
@@ -23,11 +48,21 @@ class SitesController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
-        $sites = $user->sites()->get();
         return view('sites.index', [
-            'sites' => $sites,
+            'sites' => $this->sites,
         ]);
+    }
+
+    /**
+     * Display a detail of the resource.
+     * @param Site $site
+     * @return View
+     * @throws AuthorizationException
+     */
+    public function show(Site $site): View
+    {
+        $this->authorize('view', $site);
+        return view('sites.show', compact('site'));
     }
 
     /**
@@ -70,5 +105,13 @@ class SitesController extends Controller
         $site->save();
 
         return redirect()->route('sites.index');
+    }
+
+    /**
+     * @return BinaryFileResponse
+     */
+    public function export(): BinaryFileResponse
+    {
+        return Excel::download(new SitesExport($this->sites), 'sites.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 }

@@ -14,6 +14,12 @@ class UsersTableSeeder extends Seeder
         \App\Site::query()->truncate();
         \App\User::query()->truncate();
         \App\User::create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('admin'),
+            'name' => 'Admin',
+            'role' => 'admin',
+        ]);
+        \App\User::create([
             'email' => 'client@example.com',
             'password' => bcrypt('12345678'),
             'name' => 'John Doe',

@@ -48,7 +48,8 @@
                     @endif
                         <hr>
                         <div class="text-center">
-                            <a class="btn btn-primary" href="/sites/create">New site</a>
+                            <a class="btn btn-primary" href="{{URL::route('sites.create')}}">New site</a>
+                            <a class="btn btn-primary" href="{{URL::route('sites.export')}}">Export CSV</a>
                         </div>
                 </div>
             </div>
